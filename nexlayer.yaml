@@ -1,0 +1,12 @@
+application:
+  name: coolify
+  pods:
+    - name: app
+      image: coollabsio/coolify:latest
+      path: /
+      servicePorts:
+        - 8000
+      volumes:
+        - name: data
+          mountPath: /data/coolify
+          size: 10Gi
