@@ -4,9 +4,49 @@ application:
   - name: app
     image: coollabsio/coolify:latest
     path: /
+    # Coolify's bundled web server listens on 8080, not 8000.
     servicePorts:
-    - 8000
+    - 8080
+    vars:
+      # Coolify (Laravel) hardcodes the hostnames "coolify-db" and "coolify-redis".
+      # Pods named "db"/"redis" resolve to services coolify-db / coolify-redis.
+      APP_ID: relaxed-weasel-coolify
+      APP_NAME: Coolify
+      APP_ENV: production
+      APP_KEY: "base64:kDbP96oQkexl6FMzxdJzxABvOWM1e1ztk3BrTCn2B3k="
+      APP_URL: "https://relaxed-weasel-coolify.cloud.nexlayer.ai"
+      DB_CONNECTION: pgsql
+      DB_HOST: coolify-db
+      DB_PORT: "5432"
+      DB_DATABASE: coolify
+      DB_USERNAME: coolify
+      DB_PASSWORD: coolifypassword
+      REDIS_HOST: coolify-redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: coolifyredispassword
+      PHP_MEMORY_LIMIT: 512M
+      SSL_MODE: "off"
     volumes:
     - name: coolify-data
       mountPath: /data/coolify
       size: 10Gi
+  - name: db
+    image: postgres:15-alpine
+    servicePorts:
+    - 5432
+    vars:
+      POSTGRES_DB: coolify
+      POSTGRES_USER: coolify
+      POSTGRES_PASSWORD: coolifypassword
+    volumes:
+    - name: coolify-db
+      mountPath: /var/lib/postgresql/data
+      size: 10Gi
+  - name: redis
+    image: redis:7-alpine
+    command:
+    - redis-server
+    - --requirepass
+    - coolifyredispassword
+    servicePorts:
+    - 6379
